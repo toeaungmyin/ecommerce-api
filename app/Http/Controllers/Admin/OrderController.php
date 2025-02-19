@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -16,7 +17,30 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $order = Order::create($request->all());
+        $validatedData = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+        ]);
+
+        $total = 0;
+        foreach ($validatedData['items'] as $item) {
+            $product = Product::find($item['product_id']);
+            $total += $item['quantity'] * $product->price;
+        }
+
+        $orderData = [
+            'user_id' => $validatedData['user_id'],
+            'total' => $total,
+        ];
+
+        $order = Order::create($orderData);
+
+        // Optionally, you can save the order items to a separate table if needed
+        // foreach ($validatedData['items'] as $item) {
+        //     $order->items()->create($item);
+        // }
+
         return response()->json($order, 201);
     }
 

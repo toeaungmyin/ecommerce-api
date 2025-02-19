@@ -9,14 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    // Display a listing of the products.
     public function index()
     {
         $products = Product::all();
         return response()->json($products);
     }
 
-    // Store a newly created product in storage.
     public function store(Request $request)
     {
         $request->validate([
@@ -36,17 +34,15 @@ class ProductController extends Controller
         return response()->json($product, 201);
     }
 
-    // Display the specified product.
     public function show(Product $product)
     {
         return response()->json($product);
     }
 
-    // Update the specified product in storage.
     public function update(Request $request, Product $product)
-    {   
-        $request->validate([
-            'name' => 'required',
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string',
             'price' => 'required|numeric',
             'description' => 'required',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
@@ -58,15 +54,14 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->photo_path);
             }
             $path = $request->file('photo')->store('images', 'public');
-            $request->merge(['photo_path' => $path]);
+            $validatedData['photo_path'] = $path;
         }
 
-        $product->update($request->all());
+        $product->update($validatedData);
 
         return response()->json($product);
     }
 
-    // Remove the specified product from storage.
     public function destroy(Product $product)
     {
         if ($product->photo_path) {
