@@ -11,7 +11,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::all();
+        $orders = Order::where('user_id', auth()->id())->get();
         return response()->json($orders->load('items'));
     }
 
@@ -19,6 +19,9 @@ class OrderController extends Controller
     {
         $validatedData = $request->validate([
             'user_id' => 'required|exists:users,id',
+            'customer_name' => 'required|string',
+            'customer_email' => 'required|email',
+            'shipping_address'=> 'required|string',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
         ]);
@@ -38,6 +41,9 @@ class OrderController extends Controller
         $order = Order::create([
             'user_id'=> $validatedData['user_id'],
             'total' => $total,
+            'customer_name' => $validatedData['customer_name'],
+            'customer_email' => $validatedData['customer_email'],
+            'shipping_address' => $validatedData['shipping_address'],
         ]);
 
         $order->items()->createMany($items);

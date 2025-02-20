@@ -15,42 +15,35 @@ class OrderController extends Controller
         return response()->json($orders->load('items'));
     }
 
-    public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|numeric|min:1',
-        ]);
+    // public function store(Request $request)
+    // {
+    //     $validatedData = $request->validate([
+    //         'user_id' => 'required|exists:users,id',
+    //         'items.*.product_id' => 'required|exists:products,id',
+    //         'items.*.quantity' => 'required|numeric|min:1',
+    //     ]);
 
-        $total = 0;
-        $items = [];
-        foreach ($validatedData['items'] as $item) {
-            $product = Product::find($item['product_id']);
-            $total += $item['quantity'] * $product->price;
-            $items[] = [
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'price' => $product->price * $item['quantity'],
-            ];
-        }
+    //     $total = 0;
+    //     $items = [];
+    //     foreach ($validatedData['items'] as $item) {
+    //         $product = Product::find($item['product_id']);
+    //         $total += $item['quantity'] * $product->price;
+    //         $items[] = [
+    //             'product_id' => $product->id,
+    //             'quantity' => $item['quantity'],
+    //             'price' => $product->price * $item['quantity'],
+    //         ];
+    //     }
 
-        $order = Order::create([
-            'user_id'=> $validatedData['user_id'],
-            'total' => $total,
-        ]);
+    //     $order = Order::create([
+    //         'user_id'=> $validatedData['user_id'],
+    //         'total' => $total,
+    //     ]);
 
-        foreach( $items as $item ) {
-            $order->items()->create([
-                'product_id' => $item['product_id'],
-                'quantity'=> $item['quantity'],
-                'price'=> $item['price'],
-                'order_id'=> $order->id,
-            ]);
-        }
+    //     $order->items()->createMany($items);
 
-        return response()->json($order->load('items'), 201);
-    }
+    //     return response()->json($order->load('items'), 201);
+    // }
 
     public function show($id)
     {
@@ -68,7 +61,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
         $order->update($request->all());
-        return response()->json($order)->load('items');
+        return response()->json($order->load('items'));
     }
 
     public function destroy($id)

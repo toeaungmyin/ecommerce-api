@@ -17,6 +17,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->decimal('total', 8, 0);
+            $table->string('customer_name');
+            $table->string('customer_email');
+            $table->string('shipping_address');
             $table->timestamps();
         });
     }
