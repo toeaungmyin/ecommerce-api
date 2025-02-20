@@ -24,22 +24,24 @@ class OrderController extends Controller
         ]);
 
         $total = 0;
+        $items = [];
         foreach ($validatedData['items'] as $item) {
             $product = Product::find($item['product_id']);
             $total += $item['quantity'] * $product->price;
+            $items[] = [
+                'product_id' => $product->id,
+                'quantity' => $item['quantity'],
+                'price' => $product->price,
+            ];
         }
 
         $orderData = [
             'user_id' => $validatedData['user_id'],
+            'items' => json_encode($items),
             'total' => $total,
         ];
 
         $order = Order::create($orderData);
-
-        // Optionally, you can save the order items to a separate table if needed
-        // foreach ($validatedData['items'] as $item) {
-        //     $order->items()->create($item);
-        // }
 
         return response()->json($order, 201);
     }
