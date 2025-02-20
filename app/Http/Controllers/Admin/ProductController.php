@@ -25,7 +25,7 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('images');
+            $path = $request->file('photo')->store('images', 'public');
             $request->merge(['photo_path' => $path]);
         }
 
@@ -53,7 +53,7 @@ class ProductController extends Controller
             if ($product->photo_path) {
                 Storage::disk('public')->delete($product->photo_path);
             }
-            $path = $request->file('photo')->store('images');
+            $path = $request->file('photo')->store('images', 'public');
             $validatedData['photo_path'] = $path;
         }
 
