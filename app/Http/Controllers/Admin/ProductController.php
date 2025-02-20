@@ -17,7 +17,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required',
             'price' => 'required|numeric',
             'description' => 'required',
@@ -25,11 +25,10 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('images', 'public');
-            $request->merge(['photo_path' => $path]);
+            $validatedData['photo_path'] = $request->file('photo')->store('images');
         }
 
-        $product = Product::create($request->all());
+        $product = Product::create($validatedData);
 
         return response()->json($product, 201);
     }
@@ -49,12 +48,10 @@ class ProductController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            // Delete the old photo if exists
             if ($product->photo_path) {
                 Storage::disk('public')->delete($product->photo_path);
             }
-            $path = $request->file('photo')->store('images', 'public');
-            $validatedData['photo_path'] = $path;
+            $validatedData['photo_path'] = $request->file('photo')->store('images' );
         }
 
         $product->update($validatedData);

@@ -66,7 +66,37 @@ class OrderController extends Controller
         if (is_null($order)) {
             return response()->json(['message' => 'Order not found'], 404);
         }
-        $order->update($request->all());
+
+        $validatedData = $request->validate([
+            'customer_name' => 'required|string',
+            'customer_email' => 'required|email',
+            'shipping_address'=> 'required|string',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+        ]);
+
+        $total = 0;
+        $items = [];
+        foreach ($validatedData['items'] as $item) {
+            $product = Product::find($item['product_id']);
+            $total += $item['quantity'] * $product->price;
+            $items[] = [
+                'product_id' => $product->id,
+                'quantity' => $item['quantity'],
+                'price' => $product->price * $item['quantity'],
+            ];
+        }
+
+        $order->update([
+            'total' => $total,
+            'customer_name' => $validatedData['customer_name'],
+            'customer_email' => $validatedData['customer_email'],
+            'shipping_address' => $validatedData['shipping_address'],
+        ]);
+
+        $order->items()->delete();
+        $order->items()->createMany($items);
+
         return response()->json($order->load('items'));
     }
 
