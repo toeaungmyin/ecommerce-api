@@ -12,7 +12,7 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::all();
-        return response()->json($orders);
+        return response()->json($orders->load('items'));
     }
 
     public function store(Request $request)
@@ -31,19 +31,25 @@ class OrderController extends Controller
             $items[] = [
                 'product_id' => $product->id,
                 'quantity' => $item['quantity'],
-                'price' => $product->price,
+                'price' => $product->price * $item['quantity'],
             ];
         }
 
-        $orderData = [
-            'user_id' => $validatedData['user_id'],
-            'items' => json_encode($items),
+        $order = Order::create([
+            'user_id'=> $validatedData['user_id'],
             'total' => $total,
-        ];
+        ]);
 
-        $order = Order::create($orderData);
+        foreach( $items as $item ) {
+            $order->items()->create([
+                'product_id' => $item['product_id'],
+                'quantity'=> $item['quantity'],
+                'price'=> $item['price'],
+                'order_id'=> $order->id,
+            ]);
+        }
 
-        return response()->json($order, 201);
+        return response()->json($order->load('items'), 201);
     }
 
     public function show($id)
@@ -52,7 +58,7 @@ class OrderController extends Controller
         if (is_null($order)) {
             return response()->json(['message' => 'Order not found'], 404);
         }
-        return response()->json($order);
+        return response()->json($order->load('items'));
     }
 
     public function update(Request $request, $id)
@@ -62,7 +68,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Order not found'], 404);
         }
         $order->update($request->all());
-        return response()->json($order);
+        return response()->json($order)->load('items');
     }
 
     public function destroy($id)

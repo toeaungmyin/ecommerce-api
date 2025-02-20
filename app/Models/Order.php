@@ -15,4 +15,16 @@ class Order extends Model
         'quantity',
         'total',
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+
+    public function product(){
+        return $this->belongsTo(Product::class);
+    }
+
+    public function items(){
+        return $this->hasMany(Item::class);
+    }
 }

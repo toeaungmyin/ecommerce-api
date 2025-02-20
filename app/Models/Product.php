@@ -15,4 +15,8 @@ class Product extends Model
         'description',
         'photo_path'
     ];
+
+    public function item(){
+        return $this->hasMany(Item::class);
+    }
 }
